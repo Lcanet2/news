@@ -56,6 +56,8 @@ function plugin_init_news() {
 
       $PLUGIN_HOOKS['pre_item_form']['news'] = ['PluginNewsAlert', 'preItemForm'];
 
+      Plugin::registerClass('PluginNewsProfile', ['addtabon' => 'Profile']);
+
       if (Session::haveRight('reminder_public', READ)) {
          $PLUGIN_HOOKS['menu_toadd']['news'] = [
             'tools' => 'PluginNewsAlert',

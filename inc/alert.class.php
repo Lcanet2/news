@@ -401,7 +401,6 @@ class PluginNewsAlert extends CommonDBTM {
 
       echo '<tr>';
       echo '<td>' . __("Type (to add an icon before alert title)", 'news') .'</td>';
-      echo '</td>';
       echo '<td>';
       Dropdown::showFromArray('type', self::getTypes(),
                               ['value'               => $this->fields['type'],
@@ -409,7 +408,6 @@ class PluginNewsAlert extends CommonDBTM {
       echo '</td>';
 
       echo '<td>' . __("Can close alert", 'news') .'</td>';
-      echo '</td>';
       echo '<td>';
       Dropdown::showYesNo('is_close_allowed', $this->fields['is_close_allowed']);
       echo '</td>';
@@ -417,26 +415,33 @@ class PluginNewsAlert extends CommonDBTM {
       echo '</tr>';
 
       echo '<tr>';
-      echo '<td>' . __("Show on login page", 'news') .'</td>';
-      echo '</td>';
-      echo '<td>';
-      Dropdown::showYesNo('is_displayed_onlogin', $this->fields['is_displayed_onlogin']);
-      echo '</td>';
-
-      echo '<td>' . __("Show on helpdesk page", 'news') .'</td>';
-      echo '</td>';
-      echo '<td>';
-      Dropdown::showYesNo('is_displayed_onhelpdesk', $this->fields['is_displayed_onhelpdesk']);
-      echo '</td>';
+      if (Session::haveRight('is_displayed_onlogin', READ)) {
+         echo '<td>' . __("Show on login page", 'news') .'</td>';
+         echo '<td>';
+         Dropdown::showYesNo('is_displayed_onlogin', $this->fields['is_displayed_onlogin'], -1, [
+            'readonly' => !Session::haveRight('is_displayed_onlogin', UPDATE)
+         ]);
+         echo '</td>';
+      }
+      if (Session::haveRight('is_displayed_onhelpdesk', READ)) {
+          echo '<td>' . __("Show on helpdesk page", 'news') .'</td>';
+          echo '<td>';
+          Dropdown::showYesNo('is_displayed_onhelpdesk', $this->fields['is_displayed_onhelpdesk'], -1, [
+            'readonly' => !Session::haveRight('is_displayed_onhelpdesk', UPDATE)
+          ]);
+          echo '</td>';
+      }
       echo '</tr>';
 
       echo '<tr>';
-      echo '<td>' . __("Show on central page", 'news') .'</td>';
-      echo '</td>';
-      echo '<td>';
-      Dropdown::showYesNo('is_displayed_oncentral', $this->fields['is_displayed_oncentral']);
-      echo '</td>';
-      echo '</tr>';
+      if (Session::haveRight('is_displayed_oncentral', READ)) {
+         echo '<td>' . __("Show on central page", 'news') .'</td>';
+         echo '<td>';
+         Dropdown::showYesNo('is_displayed_oncentral', $this->fields['is_displayed_oncentral'], -1, [
+            'readonly' => !Session::haveRight('is_displayed_oncentral', UPDATE)
+         ]);
+         echo '</td>';
+      }
 
       $this->showFormButtons($options);
    }
