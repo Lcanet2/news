@@ -96,6 +96,9 @@ Html::header(
    "PluginNewsAlert"
 );
 
+if (!Session::haveRight('reminder_public', READ)) {
+   Html::displayRightError();
+}
 $alert->display(['id'=> $_GET["id"]]);
 
 Html::footer();

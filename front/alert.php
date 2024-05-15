@@ -37,6 +37,10 @@ Html::header(
    "PluginNewsAlert"
 );
 
+if (!Session::HaveRight('reminder_public', READ)) {
+    HTML::displayRightError();
+}
+
 Search::show('PluginNewsAlert');
 
 Html::footer();
