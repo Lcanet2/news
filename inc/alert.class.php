@@ -448,7 +448,7 @@ class PluginNewsAlert extends CommonDBTM {
 
    static function displayOnCentral() {
       echo "<tr><th colspan='2'>";
-      self::displayAlerts(['show_only_central_alerts' => true]);
+      self::displayAlerts(['show_only_central_alerts' => true, 'entities_id' => Session::getActiveEntity()]);
       echo "</th></tr>";
    }
 
