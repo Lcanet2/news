@@ -1,6 +1,6 @@
-# News GLPI plugin
+# News ITSM-NG plugin
 
-This plugin allows to display alerts messages on GLPI homepage and / or login page.
+This plugin allows to display alerts messages on ITSM-NG homepage and / or login page.
 
 1. Create alert with rich text as for notes.
 2. Choice of begin/end publication date.

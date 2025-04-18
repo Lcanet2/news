@@ -62,7 +62,7 @@ class PluginNewsAlert_Target extends CommonDBTM {
                   return $item->getTypeName()." - ".__('All');
                }
                $item->getFromDB($values['items_id']);
-               return $item->getTypeName()." - ".$item->getName();
+               return $item->getTypeName()." - ".($item->getName() == 'N/A' ? __('All') : $item->getName());
             }
             break;
 
