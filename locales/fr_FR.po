@@ -76,3 +76,15 @@ msgstr "Avertissement"
 #: inc/alert.class.php:512
 msgid "Problem"
 msgstr "Problème"
+
+#: inc/profile.class.php:153
+msgid "Login page"
+msgstr "Page de connexion"
+
+#: inc/profile.class.php:160
+msgid "Central page"
+msgstr "Page centrale"
+
+#: inc/profile.class.php:167
+msgid "Helpdesk page"
+msgstr "Page d'assistance"
