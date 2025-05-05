@@ -309,11 +309,11 @@ class PluginNewsAlert extends CommonDBTM {
    public function prepareInputForAdd($input) {
       $errors = [];
 
-      if (!$input['name']) {
+      if (!isset($input['name']) || empty($input['name'])) {
          array_push($errors, __('Please enter a name.', 'news'));
       }
 
-      if (!$input['message']) {
+      if (!isset($input['message']) || empty($input['message'])) {
          array_push($errors, __('Please enter a message.', 'news'));
       }
 
