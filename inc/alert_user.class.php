@@ -49,7 +49,7 @@ class PluginNewsAlert_User extends CommonDBRelation {
          return false;
       }
 
-      $plugin_news_alerts_id = intval($params['id']);
+      $plugin_news_alerts_id = (int)$params['id'];
       $users_id = $_SESSION['glpiID'];
 
       $query_hidealert = "REPLACE INTO `".self::getTable()."`

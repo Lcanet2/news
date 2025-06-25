@@ -85,6 +85,12 @@ if (isset($_POST['update'])) {
 } else if (isset($_POST["addvisibility"])) {
    $alert->check($_POST['plugin_news_alerts_id'], UPDATE);
    $target = new PluginNewsAlert_Target();
+   if ($_POST["items_id"] == -1) {
+      $_POST["all_items"] = 1;
+      $_POST["items_id"]  = 0;
+   } else {
+      $_POST["all_items"] = 0;
+   }
    $target->add($_POST);
    Html::back();
 }
