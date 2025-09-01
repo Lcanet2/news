@@ -425,36 +425,26 @@ class PluginNewsAlert extends CommonDBTM {
            ]
        ];
 
-       if (Session::haveRight('is_displayed_onlogin', READ)) {
-           $form['content'][__('Display Settings', 'news')]['inputs'][__('Show on login page', 'news')] = [
-               'name' => 'is_displayed_onlogin',
-               'type' => 'checkbox',
-               'value' => $this->fields['is_displayed_onlogin'],
-               'disabled' => !Session::haveRight('is_displayed_onlogin', UPDATE),
-               'col_lg' => 4,
-           ];
-       }
-
-       if (Session::haveRight('is_displayed_onhelpdesk', READ)) {
-           $form['content'][__('Display Settings', 'news')]['inputs'][__('Show on helpdesk page', 'news')] = [
-               'name' => 'is_displayed_onhelpdesk',
-               'type' => 'checkbox',
-               'value' => $this->fields['is_displayed_onhelpdesk'],
-               'disabled' => !Session::haveRight('is_displayed_onhelpdesk', UPDATE),
-               'col_lg' => 4,
-           ];
-       }
-
-       if (Session::haveRight('is_displayed_oncentral', READ)) {
-           $form['content'][__('Display Settings', 'news')]['inputs'][__('Show on central page', 'news')] = [
-               'name' => 'is_displayed_oncentral',
-               'type' => 'checkbox',
-               'value' => $this->fields['is_displayed_oncentral'],
-               'disabled' => !Session::haveRight('is_displayed_oncentral', UPDATE),
-               'col_lg' => 4,
-           ];
-       }
-
+       $form['content'][__('Display Settings', 'news')]['inputs'][__('Show on login page', 'news')] = [
+         'name' => 'is_displayed_onlogin',
+         'type' => 'checkbox',
+         'value' => $this->fields['is_displayed_onlogin'],
+         'col_lg' => 4,
+     ];
+     
+     $form['content'][__('Display Settings', 'news')]['inputs'][__('Show on helpdesk page', 'news')] = [
+         'name' => 'is_displayed_onhelpdesk',
+         'type' => 'checkbox',
+         'value' => $this->fields['is_displayed_onhelpdesk'],
+         'col_lg' => 4,
+     ];
+     
+     $form['content'][__('Display Settings', 'news')]['inputs'][__('Show on central page', 'news')] = [
+         'name' => 'is_displayed_oncentral',
+         'type' => 'checkbox',
+         'value' => $this->fields['is_displayed_oncentral'],
+         'col_lg' => 4,
+     ];
        $additionnalHtml = '
        <script>
        $(document).ready(function() {
