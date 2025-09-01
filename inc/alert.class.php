@@ -352,98 +352,129 @@ class PluginNewsAlert extends CommonDBTM {
       $this->fields['is_close_allowed'] = 1;
    }
 
-   public function showForm($ID, $options = []) {
-      $this->initForm($ID, $options);
+   public function showForm($ID, $options = [])
+   {
+       $this->initForm($ID, $options);
+       
+       if ($this->getField('message') == NOT_AVAILABLE) {
+           $this->fields['message'] = "";
+       }
 
-      $canedit = $this->can($ID, UPDATE);
+       $form = [
+           'action' => $this->getFormURL(),
+           'itemtype' => $this::class,
+           'content' => [
+               __('Alert Information', 'news') => [
+                   'visible' => true,
+                   'inputs' => [
+                       __('Name') => [
+                           'name' => 'name',
+                           'type' => 'text',
+                           'value' => $this->fields['name'],
+                           'col_lg' => 6,
+                       ],
+                       __('Active') => [
+                           'name' => 'is_active',
+                           'type' => 'checkbox',
+                           'value' => $this->fields['is_active'],
+                           'col_lg' => 6,
+                       ],
+                       __('Description') => [
+                           'name' => 'message',
+                           'type' => 'richtextarea',
+                           'value' => $this->fields['message'],
+                           'col_lg' => 12,
+                       ],
+                   ],
+               ],
+               __('Visibility Period', 'news') => [
+                   'visible' => true,
+                   'inputs' => [
+                       __('Visibility start date') => [
+                           'name' => 'date_start',
+                           'type' => 'datetime-local',
+                           'value' => $this->fields['date_start'],
+                           'col_lg' => 6,
+                       ],
+                       __('Visibility end date') => [
+                           'name' => 'date_end',
+                           'type' => 'datetime-local',
+                           'value' => $this->fields['date_end'],
+                           'col_lg' => 6,
+                       ],
+                   ],
+               ],
+               __('Display Settings', 'news') => [
+                   'visible' => true,
+                   'inputs' => [
+                       __('Type (to add an icon before alert title)', 'news') => [
+                           'name' => 'type',
+                           'type' => 'select',
+                           'values' => array_merge(['' => ''], self::getTypes()),
+                           'value' => $this->fields['type'],
+                           'col_lg' => 6,
+                       ],
+                       __('Can close alert', 'news') => [
+                           'name' => 'is_close_allowed',
+                           'type' => 'checkbox',
+                           'value' => $this->fields['is_close_allowed'],
+                           'col_lg' => 6,
+                       ],
+                   ],
+               ],
+           ]
+       ];
 
-      if ($this->getField('message') == NOT_AVAILABLE) {
-         $this->fields['message'] = "";
-      }
+       if (Session::haveRight('is_displayed_onlogin', READ)) {
+           $form['content'][__('Display Settings', 'news')]['inputs'][__('Show on login page', 'news')] = [
+               'name' => 'is_displayed_onlogin',
+               'type' => 'checkbox',
+               'value' => $this->fields['is_displayed_onlogin'],
+               'disabled' => !Session::haveRight('is_displayed_onlogin', UPDATE),
+               'col_lg' => 4,
+           ];
+       }
 
-      $this->showFormHeader($options);
+       if (Session::haveRight('is_displayed_onhelpdesk', READ)) {
+           $form['content'][__('Display Settings', 'news')]['inputs'][__('Show on helpdesk page', 'news')] = [
+               'name' => 'is_displayed_onhelpdesk',
+               'type' => 'checkbox',
+               'value' => $this->fields['is_displayed_onhelpdesk'],
+               'disabled' => !Session::haveRight('is_displayed_onhelpdesk', UPDATE),
+               'col_lg' => 4,
+           ];
+       }
 
-      echo "<tr  class='tab_bg_1'>";
-      echo '<td style="width: 150px">' . __('Name') .'</td>';
-      echo '<td colspan="3"><input name="name" type="text" value="'.Html::cleanInputText($this->getField('name')).'" style="width: 565px" /></td>';
-      echo '</tr>';
+       if (Session::haveRight('is_displayed_oncentral', READ)) {
+           $form['content'][__('Display Settings', 'news')]['inputs'][__('Show on central page', 'news')] = [
+               'name' => 'is_displayed_oncentral',
+               'type' => 'checkbox',
+               'value' => $this->fields['is_displayed_oncentral'],
+               'disabled' => !Session::haveRight('is_displayed_oncentral', UPDATE),
+               'col_lg' => 4,
+           ];
+       }
 
-      echo "<tr class='tab_bg_1'><td>".__('Active')."</td><td colspan='3'>";
-      Dropdown::showYesNo("is_active", $this->fields["is_active"]);
-      echo "</td></tr>";
+       $additionnalHtml = '
+       <script>
+       $(document).ready(function() {
+           // Validation des dates
+           $(\'input[name="date_start"], input[name="date_end"]\').on(\'change\', function() {
+               var dateStart = $(\'input[name="date_start"]\').val();
+               var dateEnd = $(\'input[name="date_end"]\').val();
+               
+               if (dateStart && dateEnd) {
+                   if (new Date(dateEnd) < new Date(dateStart)) {
+                       alert(\'' . __('The end date must be greater than the start date.', 'news') . '\');
+                       $(\'input[name="date_end"]\').val(\'\');
+                   }
+               }
+           });
+       });
+       </script>';
 
-      echo '<tr>';
-      echo '<td>' . __('Description') .'</td>';
-      echo '<td colspan="3">';
-      echo '<textarea name="message" rows="12" cols="80">'.$this->getField('message').'</textarea>';
-      Html::initEditorSystem('message');
-      echo '</td>';
-      echo '</tr>';
-
-      echo '<tr>';
-      echo '<td style="width: 150px">' . __("Visibility start date") .'</td>';
-      echo '<td>';
-      Html::showDateTimeField("date_start",
-                              ['value'      => $this->fields["date_start"],
-                               'timestep'   => 1,
-                               'maybeempty' => true,
-                               'canedit'    => $canedit]);
-      echo '</td>';
-      echo '<td style="width: 150px">' . __("Visibility end date") .'</td>';
-      echo '<td>';
-      Html::showDateTimeField("date_end",
-                              ['value'      => $this->fields["date_end"],
-                               'timestep'   => 1,
-                               'maybeempty' => true,
-                               'canedit'    => $canedit]);
-      echo '</td>';
-      echo '</tr>';
-
-      echo '<tr>';
-      echo '<td>' . __("Type (to add an icon before alert title)", 'news') .'</td>';
-      echo '<td>';
-      Dropdown::showFromArray('type', self::getTypes(),
-                              ['value'               => $this->fields['type'],
-                               'display_emptychoice' => true]);
-      echo '</td>';
-
-      echo '<td>' . __("Can close alert", 'news') .'</td>';
-      echo '<td>';
-      Dropdown::showYesNo('is_close_allowed', $this->fields['is_close_allowed']);
-      echo '</td>';
-
-      echo '</tr>';
-
-      echo '<tr>';
-      if (Session::haveRight('is_displayed_onlogin', READ)) {
-         echo '<td>' . __("Show on login page", 'news') .'</td>';
-         echo '<td>';
-         Dropdown::showYesNo('is_displayed_onlogin', $this->fields['is_displayed_onlogin'], -1, [
-            'readonly' => !Session::haveRight('is_displayed_onlogin', UPDATE)
-         ]);
-         echo '</td>';
-      }
-      if (Session::haveRight('is_displayed_onhelpdesk', READ)) {
-          echo '<td>' . __("Show on helpdesk page", 'news') .'</td>';
-          echo '<td>';
-          Dropdown::showYesNo('is_displayed_onhelpdesk', $this->fields['is_displayed_onhelpdesk'], -1, [
-            'readonly' => !Session::haveRight('is_displayed_onhelpdesk', UPDATE)
-          ]);
-          echo '</td>';
-      }
-      echo '</tr>';
-
-      echo '<tr>';
-      if (Session::haveRight('is_displayed_oncentral', READ)) {
-         echo '<td>' . __("Show on central page", 'news') .'</td>';
-         echo '<td>';
-         Dropdown::showYesNo('is_displayed_oncentral', $this->fields['is_displayed_oncentral'], -1, [
-            'readonly' => !Session::haveRight('is_displayed_oncentral', UPDATE)
-         ]);
-         echo '</td>';
-      }
-
-      $this->showFormButtons($options);
+       renderTwigForm($form, $additionnalHtml, $this->fields);
+       return true;
    }
 
    static function displayOnCentral() {

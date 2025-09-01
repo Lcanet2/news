@@ -36,29 +36,29 @@ Html::header_nocache();
 Session::checkLoginUser();
 
 if (isset($_POST['type']) && !empty($_POST['type'])) {
-   echo "<table class='tab_format'>";
-   echo "<tr>";
-   echo "<td>";
+   $options = [];
+
    switch ($_POST['type']) {
-      case 'User' :
-         User::dropdown(['name'        => 'items_id',
-                         'right'       => 'all',
-                         'entity'      => $_POST['entities_id'],
-                         'entity_sons' => $_POST['is_recursive'],]);
+      case 'User':
+         $options = getAllDatasFromTable('glpi_users', ['is_deleted' => 0]);
+         foreach ($options as $u) {
+            echo "<option value='{$u['id']}'>" . getUserName($u['id']) . "</option>";
+         }
          break;
 
-      case 'Group' :
-         Group::dropdown(['name' => 'items_id']);
+      case 'Group':
+         $options = getAllDatasFromTable('glpi_groups');
+         foreach ($options as $g) {
+            echo "<option value='{$g['id']}'>{$g['name']}</option>";
+         }
          break;
 
-      case 'Profile' :
-         Profile::dropdown(['name'  => 'items_id',
-                            'toadd' => [-1 => __('All')]]);
+      case 'Profile':
+         $options = getAllDatasFromTable('glpi_profiles');
+         echo "<option value='-1'>" . __('All') . "</option>";
+         foreach ($options as $p) {
+            echo "<option value='{$p['id']}'>{$p['name']}</option>";
+         }
          break;
    }
-   echo "</td>";
-   echo "<td><input type='submit' name='addvisibility' value=\""._sx('button', 'Add')."\"
-                   class='submit'></td>";
-   echo "</tr>";
-   echo "</table>";
 }

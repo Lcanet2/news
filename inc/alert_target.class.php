@@ -86,82 +86,137 @@ class PluginNewsAlert_Target extends CommonDBTM {
       }
    }
 
-   static function showForAlert(PluginNewsAlert $alert) {
-      global $CFG_GLPI;
 
-      $rand = mt_rand();
-
-      echo "<form method='post' action='".Toolbox::getItemTypeFormURL('PluginNewsAlert')."'>";
-      echo "<input type='hidden' name='plugin_news_alerts_id' value='".$alert->getID()."'>";
-
-      $types = ['Group', 'Profile', 'User'];
-      echo "<table class='plugin_news_alert-visibility'>";
-      echo "<tr>";
-      echo "<td>";
-      echo __('Add a target').":&nbsp;";
-      $addrand = Dropdown::showItemTypes('itemtype', $types, ['width' => '']);
-      echo "</td>";
-      $params  = ['type'         => '__VALUE__',
-                  'entities_id'  => $alert->fields['entities_id'],
-                  'is_recursive' => $alert->fields['is_recursive']
-                  ];
-      Ajax::updateItemOnSelectEvent("dropdown_itemtype".$addrand, "visibility$rand",
-                                    Plugin::getWebDir('news')."/ajax/targets.php",
-                                    $params);
-      echo "<td>";
-      echo "<span id='visibility$rand'></span>";
-      echo "</td>";
-      echo "<tr>";
-      echo "</table>";
-      Html::closeForm();
-
-      echo "<div class='spaced'>";
-      $target       = new self();
-      $found_target = $target->find(['plugin_news_alerts_id' => $alert->getID()]);
-      if ($nb = count($found_target) > 0) {
-         Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
-         $massiveactionparams
-            = ['num_displayed'    => $nb,
-               'container'        => 'mass'.__CLASS__.$rand,
-               'specific_actions' => ['delete' => _x('button', 'Delete permanently')]
-               ];
-         Html::showMassiveActions($massiveactionparams);
-
-         echo "<table class='tab_cadre_fixehov'>";
-
-         echo "<tr>";
-         echo "<th width='10'>".Html::getCheckAllAsCheckbox('mass'.__CLASS__.$rand)."</th>";
-         echo "<th>".__('Type')."</th>";
-         echo "<th>".__('Recipient')."</th>";
-         echo "</tr>";
-
-         foreach ($found_target as $current_target) {
-            if (class_exists($current_target['itemtype'])) {
-               $item = new $current_target['itemtype'];
-               $item->getFromDB($current_target['items_id']);
-               $name = ($current_target['all_items'] == 1
-                        && $current_target['itemtype'] == "Profile")
-                           ?__('All')
-                           :$item->getName(['complete' => true]);
-
-               echo "<tr class='tab_bg_2'>";
-               echo "<td>";
-                     Html::showMassiveActionCheckBox(__CLASS__, $current_target["id"]);
-                     echo "</td>";
-               echo "<td>".$item->getTypeName()."</td>";
-               echo "<td>$name</td>";
-               echo "</tr>";
-            }
+   
+      static function showForAlert(PluginNewsAlert $alert) {
+         global $CFG_GLPI, $DB;
+   
+         $searchID = $alert->getID();
+   
+         if (!$searchID) {
+            return false;
          }
+   
+         $canedit = Session::haveRight("plugin_news", UPDATE);
+         $rand = mt_rand();
 
-         echo "</table>";
-
-         $massiveactionparams['ontop'] = false;
-         Html::showMassiveActions($massiveactionparams);
-         Html::closeForm();
+            $types = ['Group' => __('Group'), 'Profile' => __('Profile'), 'User' => __('User')];
+            
+            $form = [
+               'action' => Toolbox::getItemTypeFormURL('PluginNewsAlert'),
+               'buttons' => [
+                  [
+                     'type'  => 'submit',
+                     'name'  => 'addvisibility',
+                     'value' => _sx('button', 'Add'),
+                     'class' => 'btn btn-secondary'
+                  ]
+               ],
+               'content' => [
+                  '' => [
+                     'visible' => true,
+                     'inputs'  => [
+                        [
+                           'type'  => 'hidden',
+                           'name'  => 'plugin_news_alerts_id',
+                           'value' => $searchID
+                        ],
+                        __('Type') => [
+                           'type'   => 'select',
+                           'name'   => 'itemtype',
+                           'id'     => 'dropdown_itemtype',
+                           'values' => array_merge(['' => '-----'], $types),
+                           'col_lg' => 6,
+                           'hooks'  => [
+                              'change' => "
+                              $.ajax({
+                                 url: '{$CFG_GLPI['root_doc']}/plugins/news/ajax/targets.php',
+                                 type: 'POST',
+                                 dataType: 'html',
+                                 data: {
+                                    type: $(this).val(),
+                                    entities_id: '{$alert->fields['entities_id']}',
+                                    is_recursive: '{$alert->fields['is_recursive']}'
+                                 },
+                                 success: function(data) {
+                                    let cleanData = data.substring(data.indexOf('<option'));
+                                    $('#dropdown_items_id').html(cleanData).prop('disabled', false);
+                                 },
+                                 error: function(xhr, status, error) {
+                                    console.error('Erreur Ajax:', status, error, xhr.responseText);
+                                    $('#dropdown_items_id_{$rand}').html('<option value=\"\">Erreur de chargement</option>');
+                                 }
+                              });
+                              "
+                           ]
+                        ],
+                        __('Target') => [
+                           'type'     => 'select',
+                           'name'     => 'items_id',
+                           'id'       => 'dropdown_items_id',
+                           'values'   => [''],
+                           'col_lg'   => 6,
+                        ],
+                        __('All items') => [
+                           'type'   => 'checkbox',
+                           'name'   => 'all_items',
+                           'value'  => 0,
+                           'col_lg' => 12,
+                        ]
+                     ]
+                  ]
+               ]
+            ];
+            
+            renderTwigForm($form);
+   
+            $target       = new self();
+            $found_target = $target->find(['plugin_news_alerts_id' => $alert->getID()]);
+            if ($nb = count($found_target) > 0) {
+               Html::openMassiveActionsForm('mass'.__CLASS__.$rand);
+               $massiveactionparams
+                  = ['num_displayed'    => $nb,
+                     'container'        => 'mass'.__CLASS__.$rand,
+                     'specific_actions' => ['delete' => _x('button', 'Delete permanently')],
+                     'deprecated'       => 'true',
+                     ];
+               Html::showMassiveActions($massiveactionparams);
+      
+               echo "<table class='tab_cadre_fixehov'>";
+      
+               echo "<tr>";
+               echo "<th width='10'>".Html::getCheckAllAsCheckbox('mass'.__CLASS__.$rand)."</th>";
+               echo "<th>".__('Type')."</th>";
+               echo "<th>".__('Recipient')."</th>";
+               echo "</tr>";
+      
+               foreach ($found_target as $current_target) {
+                  if (class_exists($current_target['itemtype'])) {
+                     $item = new $current_target['itemtype'];
+                     $item->getFromDB($current_target['items_id']);
+                     $name = ($current_target['all_items'] == 1
+                              && $current_target['itemtype'] == "Profile")
+                                 ?__('All')
+                                 :$item->getName(['complete' => true]);
+      
+                     echo "<tr class='tab_bg_2'>";
+                     echo "<td>";
+                           Html::showMassiveActionCheckBox(__CLASS__, $current_target["id"]);
+                           echo "</td>";
+                     echo "<td>".$item->getTypeName()."</td>";
+                     echo "<td>$name</td>";
+                     echo "</tr>";
+                  }
+               }
+      
+               echo "</table>";
+      
+               $massiveactionparams['ontop'] = false;
+               Html::showMassiveActions($massiveactionparams);
+               Html::closeForm();
+            }
+            echo "</div>";
+      
+            return true;
       }
-      echo "</div>";
-
-      return true;
    }
-}
