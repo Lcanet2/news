@@ -88,3 +88,9 @@ msgstr "Page centrale"
 #: inc/profile.class.php:167
 msgid "Helpdesk page"
 msgstr "Page d'assistance"
+
+msgid "Allow Reading"
+msgstr "Autoriser la lecture"
+
+msgid "Allow editing"
+msgstr "Autoriser l'édition"

@@ -76,6 +76,7 @@ class PluginNewsProfile extends CommonDBTM {
 
 		foreach ($rights as $right => $value) {
 			if (!countElementsInTable('glpi_profilerights', ['profiles_id' => $profiles_id, 'name' => $right])) {
+				$myright = [];
 				$myright['profiles_id'] = $profiles_id;
 				$myright['name']        = $right;
 				$myright['rights']      = $value;
@@ -127,12 +128,24 @@ class PluginNewsProfile extends CommonDBTM {
 	 */
 	static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
 		if ($item->getType() == 'Profile') {
-			
+
 			$ID = $item->getID();
 			$prof = new self();
 
+			// Initialize missing profile rights only once
+			$has_any_right = false;
 			foreach (self::getRightsGeneral() as $right) {
-				self::addDefaultProfileInfos($ID, [$right['field'] => 0]);
+				if (countElementsInTable('glpi_profilerights', ['profiles_id' => $ID, 'name' => $right['field']])) {
+					$has_any_right = true;
+					break;
+				}
+			}
+
+			// Only add defaults if no rights exist at all for this profile
+			if (!$has_any_right) {
+				foreach (self::getRightsGeneral() as $right) {
+					self::addDefaultProfileInfos($ID, [$right['field'] => 0]);
+				}
 			}
 
 			$prof->showForm($ID);
