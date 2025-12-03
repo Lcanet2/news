@@ -306,33 +306,67 @@ class PluginNewsAlert extends CommonDBTM {
       return false;
    }
 
-   public function prepareInputForAdd($input) {
+   private function validateFormInput(array $input, $isUpdate = false) {
       $errors = [];
 
-      if (!$input['name']) {
-         array_push($errors, __('Please enter a name.', 'news'));
+      $nameProvided    = array_key_exists('name', $input);
+      $messageProvided = array_key_exists('message', $input);
+
+      if (!$isUpdate || $nameProvided) {
+         $nameToCheck = $nameProvided ? $input['name'] : ($this->fields['name'] ?? '');
+         if (!strlen(trim((string)$nameToCheck))) {
+            $errors[] = __('Please enter a name.', 'news');
+         }
       }
 
-      if (!$input['message']) {
-         array_push($errors, __('Please enter a message.', 'news'));
+      if (!$isUpdate || $messageProvided) {
+         $messageToCheck = $messageProvided ? $input['message'] : ($this->fields['message'] ?? '');
+         $decodedMessage = Html::entity_decode_deep((string)$messageToCheck);
+         $strippedMessage = trim(strip_tags($decodedMessage));
+         if ($strippedMessage === '') {
+            $errors[] = __('Please enter a message.', 'news');
+         }
       }
 
-      if (!empty($input['date_start'])
-          && !empty($input['date_end'])) {
-         if (strtotime($input['date_end']) < strtotime($input['date_start'])) {
-            array_push($errors, __('The end date must be greater than the start date.', 'news'));
+      $dateStart = array_key_exists('date_start', $input)
+         ? $input['date_start']
+         : ($isUpdate ? ($this->fields['date_start'] ?? '') : '');
+      $dateEnd   = array_key_exists('date_end', $input)
+         ? $input['date_end']
+         : ($isUpdate ? ($this->fields['date_end'] ?? '') : '');
+
+      if ($dateStart === 'NULL') {
+         $dateStart = '';
+      }
+      if ($dateEnd === 'NULL') {
+         $dateEnd = '';
+      }
+
+      if (!empty($dateStart)
+          && !empty($dateEnd)) {
+         $startTimestamp = strtotime($dateStart);
+         $endTimestamp   = strtotime($dateEnd);
+         if ($startTimestamp !== false
+             && $endTimestamp !== false
+             && $endTimestamp < $startTimestamp) {
+            $errors[] = __('The end date must be greater than the start date.', 'news');
          }
       }
 
       if ($errors) {
          Session::addMessageAfterRedirect(implode('<br />', $errors));
+         return false;
       }
 
-      return $errors ? false : $input;
+      return $input;
+   }
+
+   public function prepareInputForAdd($input) {
+      return $this->validateFormInput($input, false);
    }
 
    public function prepareInputForUpdate($input) {
-      return $this->prepareInputForAdd($input);
+      return $this->validateFormInput($input, true);
    }
 
    function post_addItem() {
