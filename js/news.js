@@ -39,8 +39,6 @@ pluginNewsCloseAlerts = function () {
 };
 
 pluginNewsToggleAlerts = function () {
-  $(".plugin_news_alert-login .plugin_news_alert").addClass("expanded");
-
   $(document).on("click", ".plugin_news_alert-toggle", function () {
     var alert = $(this).parent(".plugin_news_alert");
     alert.toggleClass("expanded");
