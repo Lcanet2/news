@@ -444,7 +444,7 @@ class PluginNewsAlert extends CommonDBTM {
                        __('Type (to add an icon before alert title)', 'news') => [
                            'name' => 'type',
                            'type' => 'select',
-                           'values' => array_merge(['' => ''], self::getTypes()),
+                           'values' => self::getTypes(),
                            'value' => $this->fields['type'],
                            'col_lg' => 6,
                        ],
@@ -544,7 +544,7 @@ class PluginNewsAlert extends CommonDBTM {
             if ($p['show_only_login_alerts']) {
                echo "<a class='plugin_news_alert-toggle'></a>";
             }
-            echo "<div class='plugin_news_alert-title ui-widget-header'>";
+            echo "<div class='plugin_news_alert-title ui-widget-header type_$type'>";
             echo "<span class='plugin_news_alert-icon type_$type'></span>";
             echo "<div class='plugin_news_alert-title-content'>$title</div>";
             echo "<div class='plugin_news_alert-date'>$date_start$date_end</div>";
